@@ -2,11 +2,12 @@ var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-
+var methodOverride = require('method-override');
 // App config
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static("public"));
 app.set("view engine","ejs");
+app.use(methodOverride("_method"));
 
 mongoose.connect("mongodb://localhost/blog",{useNewUrlParser: true, useUnifiedTopology: true});
 
@@ -83,6 +84,18 @@ app.get("/blogs/:id/edit",function(req,res){
         }
     });
     
+});
+
+//Update route
+app.put("/blogs/:id",function(req,res){
+    Blog.findByIdAndUpdate(req.params.id, req.body.blog, function(err,updatedBlog){
+        if(err){
+            res.redirect("/blogs");
+        }
+        else{
+            res.redirect("/blogs/"+ req.params.id);
+        }
+    });
 });
 
 //Handeling 404 error
