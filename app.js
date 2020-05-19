@@ -72,6 +72,19 @@ app.get("/blogs/:id",function(req,res){
     });
 });
 
+//Edit route
+app.get("/blogs/:id/edit",function(req,res){
+    Blog.findById(req.params.id,function(err, foundBlog){
+        if(err){
+            res.redirect("/blogs")
+        }
+        else{
+            res.render("edit",{blog: foundBlog});
+        }
+    });
+    
+});
+
 //Handeling 404 error
 app.get("*",function(req,res){
     res.send("404 Not found");
