@@ -1,15 +1,19 @@
 var express = require('express');
-var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
+var expressSanitizer = require('express-sanitizer');
+
+
+var app = express();
 // App config
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static("public"));
+app.use(expressSanitizer());
 app.set("view engine","ejs");
 app.use(methodOverride("_method"));
 
-mongoose.connect("mongodb://localhost/blog",{useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb://localhost/blog",{useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false});
 
 // mongoose/model config
 var blogSchema = new mongoose.Schema({
@@ -51,12 +55,16 @@ app.get("/new",function(req,res){
 
 // Create route
 app.post("/blogs",function(req,res){
+    console.log(req.body);
+    req.body.blog.body = req.sanitize(req.body.blog.body);
+    console.log(req.body);
+
     Blog.create(req.body.blog,function(err, newBlog){
         if(err){
             res.render("new");
         }
         else{
-            res.redirect("/blogs")
+            res.redirect("/blogs");
         }
     });
 });
@@ -65,10 +73,10 @@ app.post("/blogs",function(req,res){
 app.get("/blogs/:id",function(req,res){
     Blog.findById(req.params.id,function(err, foundBlog){
         if(err){
-            res.redirect("/blogs")
+            res.redirect("/blogs");
         }
         else{
-            res.render("show",{blog:foundBlog})
+            res.render("show",{blog:foundBlog});
         }
     });
 });
@@ -77,7 +85,7 @@ app.get("/blogs/:id",function(req,res){
 app.get("/blogs/:id/edit",function(req,res){
     Blog.findById(req.params.id,function(err, foundBlog){
         if(err){
-            res.redirect("/blogs")
+            res.redirect("/blogs");
         }
         else{
             res.render("edit",{blog: foundBlog});
@@ -94,6 +102,18 @@ app.put("/blogs/:id",function(req,res){
         }
         else{
             res.redirect("/blogs/"+ req.params.id);
+        }
+    });
+});
+
+//Destroy route
+app.delete("/blogs/:id",function(req,res){
+    Blog.findOneAndRemove(req.params.id,function(err){
+        if(err){
+            res.redirect("/blogs");
+        }
+        else{
+            res.redirect("/blogs");
         }
     });
 });
